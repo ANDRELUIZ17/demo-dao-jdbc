@@ -26,8 +26,43 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void insert(Seller obj) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'insert'");
+
+        PreparedStatement statement = null;
+
+        try{
+            statement = connection.prepareStatement(
+                "INSERT INTO seller "
+                +"(Name, Email, BirthDate, BaseSalary, DepartmentId) " 
+                +"VALUES " 
+                +"(?, ?, ?, ?, ?)",
+                statement.RETURN_GENERATED_KEYS); //retornar o id do vendedor inserido
+
+                //configuração da interrogação que são os placeholders
+                statement.setString(1, obj.getName());
+                statement.setString(2, obj.getEmail());
+                statement.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+                statement.setDouble(4, obj.getBaseSalary());
+                statement.setInt(5, obj.getDepartment().getId());
+
+                int rowsAffected = statement.executeUpdate();
+
+                if(rowsAffected > 0) {
+                    ResultSet resultSet = statement.getGeneratedKeys();
+                    if(resultSet.next()) {
+                        int id = resultSet.getInt(1);
+                        obj.setId(id);
+                    }
+                    DB.closeResultSet(resultSet);
+                }
+                else {
+                    throw new DbException("Unexpected erro! No rows affected!");
+                }
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeStatement(statement);
+        }
     }
 
     @Override
@@ -70,7 +105,7 @@ public class SellerDaoJDBC implements SellerDao {
         }
     }
 
-    private Seller instantiateSeller(ResultSet resultSet, Department department) throws SQLException{
+    private Seller instantiateSeller(ResultSet resultSet, Department department) throws SQLException {
         new Seller();
 
         Seller obj = new Seller();
@@ -94,7 +129,7 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public List<Seller> findAll() {
-        
+
         PreparedStatement statement = null;
         ResultSet resultSet = null;
 
@@ -103,7 +138,7 @@ public class SellerDaoJDBC implements SellerDao {
                     "SELECT seller.*,department.Name as DepName "
                             + "FROM seller INNER JOIN department "
                             + "ON seller.DepartmentId = department.Id "
-                            + "ORDER BY Name"); 
+                            + "ORDER BY Name");
 
             resultSet = statement.executeQuery();
 
@@ -115,7 +150,7 @@ public class SellerDaoJDBC implements SellerDao {
 
                 Department dep = map.get(resultSet.getInt("DepartmentId"));
 
-                if(dep == null) {
+                if (dep == null) {
                     dep = instantiateDepartment(resultSet);
                     map.put(resultSet.getInt("DepartmentId"), dep);
                 }
@@ -147,7 +182,7 @@ public class SellerDaoJDBC implements SellerDao {
                             + "FROM seller INNER JOIN department "
                             + "ON seller.DepartmentId = department.Id "
                             + "WHERE DepartmentId = ? "
-                            + "ORDER BY Name"); 
+                            + "ORDER BY Name");
 
             statement.setInt(1, department.getId());
 
@@ -161,7 +196,7 @@ public class SellerDaoJDBC implements SellerDao {
 
                 Department dep = map.get(resultSet.getInt("DepartmentId"));
 
-                if(dep == null) {
+                if (dep == null) {
                     dep = instantiateDepartment(resultSet);
                     map.put(resultSet.getInt("DepartmentId"), dep);
                 }
