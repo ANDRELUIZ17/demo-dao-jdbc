@@ -29,46 +29,65 @@ public class SellerDaoJDBC implements SellerDao {
 
         PreparedStatement statement = null;
 
-        try{
+        try {
             statement = connection.prepareStatement(
-                "INSERT INTO seller "
-                +"(Name, Email, BirthDate, BaseSalary, DepartmentId) " 
-                +"VALUES " 
-                +"(?, ?, ?, ?, ?)",
-                statement.RETURN_GENERATED_KEYS); //retornar o id do vendedor inserido
+                    "INSERT INTO seller "
+                            + "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+                            + "VALUES "
+                            + "(?, ?, ?, ?, ?)",
+                    statement.RETURN_GENERATED_KEYS); // retornar o id do vendedor inserido
 
-                //configuração da interrogação que são os placeholders
-                statement.setString(1, obj.getName());
-                statement.setString(2, obj.getEmail());
-                statement.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
-                statement.setDouble(4, obj.getBaseSalary());
-                statement.setInt(5, obj.getDepartment().getId());
+            // configuração da interrogação que são os placeholders
+            statement.setString(1, obj.getName());
+            statement.setString(2, obj.getEmail());
+            statement.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+            statement.setDouble(4, obj.getBaseSalary());
+            statement.setInt(5, obj.getDepartment().getId());
 
-                int rowsAffected = statement.executeUpdate();
+            int rowsAffected = statement.executeUpdate();
 
-                if(rowsAffected > 0) {
-                    ResultSet resultSet = statement.getGeneratedKeys();
-                    if(resultSet.next()) {
-                        int id = resultSet.getInt(1);
-                        obj.setId(id);
-                    }
-                    DB.closeResultSet(resultSet);
+            if (rowsAffected > 0) {
+                ResultSet resultSet = statement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    int id = resultSet.getInt(1);
+                    obj.setId(id);
                 }
-                else {
-                    throw new DbException("Unexpected erro! No rows affected!");
-                }
+                DB.closeResultSet(resultSet);
+            } else {
+                throw new DbException("Unexpected erro! No rows affected!");
+            }
         } catch (SQLException e) {
             throw new DbException(e.getMessage());
-        }
-        finally {
+        } finally {
             DB.closeStatement(statement);
         }
     }
 
     @Override
     public void update(Seller obj) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'update'");
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection.prepareStatement(
+                    "UPDATE seller "
+                            + "SET Name = ?, Email = ?, BirthDate = ?, BaseSalary = ?, DepartmentId = ? "
+                            + "WHERE Id = ?"); // atualiza o seller(vendendor)
+
+            // configuração da interrogação que são os placeholders
+            statement.setString(1, obj.getName());
+            statement.setString(2, obj.getEmail());
+            statement.setDate(3, new java.sql.Date(obj.getBirthDate().getTime()));
+            statement.setDouble(4, obj.getBaseSalary());
+            statement.setInt(5, obj.getDepartment().getId());
+            statement.setInt(6, obj.getId());
+
+            statement.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            DB.closeStatement(statement);
+        }
     }
 
     @Override
