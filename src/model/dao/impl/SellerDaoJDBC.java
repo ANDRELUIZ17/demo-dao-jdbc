@@ -92,8 +92,20 @@ public class SellerDaoJDBC implements SellerDao {
 
     @Override
     public void deleteById(Integer id) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'deleteById'");
+        PreparedStatement prepareStatement = null;
+
+        try {
+            prepareStatement = connection.prepareStatement("DELETE FROM seller WHERE Id = ?");
+            
+            prepareStatement.setInt(1, id);
+            prepareStatement.executeUpdate();
+            
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        }
+        finally {
+            DB.closeStatement(prepareStatement);
+        }
     }
 
     @Override
@@ -104,8 +116,8 @@ public class SellerDaoJDBC implements SellerDao {
         try {
             statement = connection.prepareStatement(
                     "SELECT seller.*,department.Name as DepName "
-                            + "FROM seller INNER JOIN department "
-                            + "ON seller.DepartmentId = department.Id WHERE seller.Id = ? ");
+                    +"FROM seller INNER JOIN department "
+                    +"ON seller.DepartmentId = department.Id WHERE seller.Id = ? ");
 
             statement.setInt(1, id);
             resultSet = statement.executeQuery();
